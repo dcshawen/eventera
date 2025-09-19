@@ -10,6 +10,7 @@
 }
 <h1 class="text-center mb-4">Upcoming Events</h1>
 <div class="row">
+    @*Loop through model to display every Event passed into this view it a bootstrap card*@
     @foreach (var eventItem in Model)
     {
         <div class="col-md-4 mb-4">
@@ -28,3 +29,4 @@
             </div>
         </div>
     }
+</div>
