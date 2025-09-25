@@ -4,11 +4,11 @@
 @{
 }
 
-@model List<Eventera.Models.Event>
+@model List<Eventera.Models.Tournament>
 @{
-    ViewData["Title"] = "Events";
+    ViewData["Title"] = "Tournaments";
 }
-<h1 class="text-center mb-4">Upcoming Events</h1>
+<h1 class="text-center mb-4">Upcoming Tournaments</h1>
 <div class="row">
     @*Loop through model to display every Event passed into this view it a bootstrap card*@
     @foreach (var eventItem in Model)
@@ -21,7 +21,7 @@
                         @eventItem.Title
                     </h5>
                     <p class="card-text">
-                        <strong>Date:</strong> @eventItem.EventDate.ToString("MMMM dd, yyyy")<br />
+                        <strong>Date:</strong> @eventItem.StartDateTime.ToString("MMMM dd, yyyy")<br />
                         <strong>Location:</strong> @eventItem.Location<br />
                         <strong>Description:</strong> @eventItem.Description
                     </p>
