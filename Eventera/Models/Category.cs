@@ -5,6 +5,6 @@
         public int CategoryId { get; set; }
         public string Title { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
-        public List<Tournament>? Tournaments { get; set; }
+        public List<AstronomicalEvent>? AstronomicalEvents { get; set; }
     }
 }

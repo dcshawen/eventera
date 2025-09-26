@@ -1,4 +1,9 @@
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Eventera.Data;
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddDbContext<EventeraContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("EventeraContext") ?? throw new InvalidOperationException("Connection string 'EventeraContext' not found.")));
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
