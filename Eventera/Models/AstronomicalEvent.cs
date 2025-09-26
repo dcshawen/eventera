@@ -2,9 +2,9 @@
 
 namespace Eventera.Models
 {
-    public class Tournament
+    public class AstronomicalEvent
     {
-        public int TournamentId { get; set; }
+        public int AstronomicalEventId { get; set; }
         public string Title { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public string Location { get; set; } = string.Empty;
@@ -12,5 +12,10 @@ namespace Eventera.Models
         public DateTime CreatedDateTime { get; set; }
         public int CategoryId { get; set; }
         public Category? Category { get; set; }
+
+        public AstronomicalEvent()
+        {
+            CreatedDateTime = DateTime.Now;
+        }
     }
 }
