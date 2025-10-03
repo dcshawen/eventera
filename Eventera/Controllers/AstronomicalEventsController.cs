@@ -82,7 +82,7 @@ namespace Eventera.Controllers
             {
                 return NotFound();
             }
-            ViewData["CategoryId"] = new SelectList(_context.Set<Category>(), "CategoryId", "CategoryId", astronomicalEvent.CategoryId);
+            ViewData["CategoryId"] = new SelectList(_context.Set<Category>(), "CategoryId", "Title", astronomicalEvent.CategoryId);
             return View(astronomicalEvent);
         }
 
@@ -91,7 +91,7 @@ namespace Eventera.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("AstronomicalEventId,Title,Description,Location,StartDateTime,CreatedDateTime,CategoryId")] AstronomicalEvent astronomicalEvent)
+        public async Task<IActionResult> Edit(int id, [Bind("AstronomicalEventId,Title,Description,Location,ImageUrl,StartDateTime,CreatedDateTime,CategoryId")] AstronomicalEvent astronomicalEvent)
         {
             if (id != astronomicalEvent.AstronomicalEventId)
             {
@@ -118,7 +118,7 @@ namespace Eventera.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["CategoryId"] = new SelectList(_context.Set<Category>(), "CategoryId", "CategoryId", astronomicalEvent.CategoryId);
+            ViewData["CategoryId"] = new SelectList(_context.Set<Category>(), "CategoryId", "Title", astronomicalEvent.CategoryId);
             return View(astronomicalEvent);
         }
 

@@ -36,7 +36,8 @@
                 @Html.DisplayFor(modelItem => item.Category.Title)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.StartDateTime)
+                 @* @Html.DisplayFor(modelItem => item.StartDateTime) *@
+                    @item.StartDateTime.ToString("MMMM dd, yyyy")
             </td>
             <td>
                 <a asp-action="Edit" asp-route-id="@item.AstronomicalEventId">Edit</a> |
