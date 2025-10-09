@@ -50,13 +50,5 @@
     <script src="~/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
-    <script>
-        document.getElementById('toggleTheme').addEventListener('click', function (e) {
-            e.preventDefault();
-            var htmlTag = document.documentElement;
-            var currentTheme = htmlTag.getAttribute('data-bs-theme');
-            htmlTag.setAttribute('data-bs-theme', currentTheme === 'dark' ? 'light' : 'dark');
-        });
-    </script>
 </body>
 </html>

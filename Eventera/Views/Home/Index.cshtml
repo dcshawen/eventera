@@ -24,7 +24,10 @@
                                 " style="height: 300px; object-fit: cover;" />
                             }
                             <div class="card-body">
-                                <h5 class="card-title">@item.Title</h5>
+                                @*<h5 class="card-title">@item.Title</h5>*@
+                                <a class="card-title h5" asp-controller="AstronomicalEvents" asp-action="Details" asp-route-id="@item.AstronomicalEventId">
+                                    @item.Title
+                                </a>
                                 <h6 class="card-subtitle mb-4 text-muted">@item.StartDateTime.ToString("MMMM dd, yyyy")</h6>
                                 <p class="card-text">@item.Description</p>
                             </div>
