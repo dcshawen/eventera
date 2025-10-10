@@ -11,31 +11,7 @@
 {
     <div id="astronomicalEventsCarousel" class="carousel slide" data-bs-ride="carousel">
         <div class="carousel-inner">
-            @{
-                var first = true;
-                foreach (var item in Model)
-                {
-                    <div class="carousel-item @(first ? "active" : "")">
-                        <div class="card mx-auto" style="max-width: 600px;">
-                            @if (item.ImageUrl != null)
-                            {
-                                <img src="@item.ImageUrl
-                                " class="card-img-top" alt="@item.Title
-                                " style="height: 300px; object-fit: cover;" />
-                            }
-                            <div class="card-body">
-                                @*<h5 class="card-title">@item.Title</h5>*@
-                                <a class="card-title h5" asp-controller="AstronomicalEvents" asp-action="Details" asp-route-id="@item.AstronomicalEventId">
-                                    @item.Title
-                                </a>
-                                <h6 class="card-subtitle mb-4 text-muted">@item.StartDateTime.ToString("MMMM dd, yyyy")</h6>
-                                <p class="card-text">@item.Description</p>
-                            </div>
-                        </div>
-                    </div>
-                    first = false;
-                }
-            }
+            
         </div>
         <button class="carousel-control-prev" type="button" data-bs-target="#astronomicalEventsCarousel" data-bs-slide="prev">
             <span class="carousel-control-prev-icon" aria-hidden="true"></span>

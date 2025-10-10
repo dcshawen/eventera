@@ -12,6 +12,7 @@
 <table class="table">
     <thead>
         <tr>
+            <th></th>
             <th>
                 @Html.DisplayNameFor(model => model.Title)
             </th>
@@ -27,6 +28,12 @@
     <tbody>
 @foreach (var item in Model) {
         <tr>
+            <td>
+                @if (!String.IsNullOrEmpty(item.Filename))
+                {
+                        <img src="/images/@item.Filename" alt="@item.Title" class="img-thumbnail" style="height:75px;"/>
+                }
+            </td>
             <td>
                 <a asp-action="Details" asp-route-id="@item.AstronomicalEventId" class="nav-link">
                     @Html.DisplayFor(modelItem => item.Title)
