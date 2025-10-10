@@ -57,10 +57,23 @@ namespace Eventera.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("AstronomicalEventId,Title,Description,Location,StartDateTime,CreatedDateTime,CategoryId")] AstronomicalEvent astronomicalEvent)
+        public async Task<IActionResult> Create([Bind("AstronomicalEventId,Title,Description,Location,StartDateTime,CreatedDateTime,CategoryId,ImageFile")] AstronomicalEvent astronomicalEvent)
         {
+            astronomicalEvent.CreatedDateTime = DateTime.Now;
+
             if (ModelState.IsValid)
             {
+                if (astronomicalEvent.ImageFile != null)
+                {
+                    string filename = Guid.NewGuid().ToString() + Path.GetExtension(astronomicalEvent.ImageFile.FileName);
+                    astronomicalEvent.Filename = filename;
+                    string savedFilePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", filename);
+
+                    using (FileStream fileStream = new FileStream(savedFilePath, FileMode.Create))
+                    {
+                        await astronomicalEvent.ImageFile.CopyToAsync(fileStream);
+                    }
+                }
                 _context.Add(astronomicalEvent);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
@@ -91,7 +104,7 @@ namespace Eventera.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("AstronomicalEventId,Title,Description,Location,ImageUrl,StartDateTime,CreatedDateTime,CategoryId")] AstronomicalEvent astronomicalEvent)
+        public async Task<IActionResult> Edit(int id, [Bind("AstronomicalEventId,Title,Description,Location,Filename,StartDateTime,CreatedDateTime,CategoryId,ImageFile")] AstronomicalEvent astronomicalEvent)
         {
             if (id != astronomicalEvent.AstronomicalEventId)
             {
@@ -102,7 +115,39 @@ namespace Eventera.Controllers
             {
                 try
                 {
-                    _context.Update(astronomicalEvent);
+                    var existingEvent = await _context.AstronomicalEvent.AsNoTracking().FirstOrDefaultAsync(e => e.AstronomicalEventId == id);
+                    if (existingEvent == null)
+                    {
+                        return NotFound();
+                    }
+
+                    string oldFilename = existingEvent.Filename;
+                    string newFilename = oldFilename;
+
+                    if (astronomicalEvent.ImageFile != null && astronomicalEvent.ImageFile.Length > 0)
+                    {
+                        string filename = Guid.NewGuid().ToString() + Path.GetExtension(astronomicalEvent.ImageFile.FileName);
+                        string savedFilePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", filename);
+
+                        using (FileStream fileStream = new FileStream(savedFilePath, FileMode.Create))
+                        {
+                            await astronomicalEvent.ImageFile.CopyToAsync(fileStream);
+                        }
+
+                        newFilename = filename;
+
+                        if (!string.IsNullOrEmpty(oldFilename))
+                        {
+                            string oldImagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", oldFilename);
+                            if (System.IO.File.Exists(oldImagePath))
+                            {
+                                System.IO.File.Delete(oldImagePath);
+                            }
+                        }
+                    }
+
+                    astronomicalEvent.Filename = newFilename;
+                    _context.Entry(astronomicalEvent).State = EntityState.Modified;
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)

@@ -8,7 +8,7 @@
 <hr />
 <div class="row">
     <div class="col-md-4">
-        <form asp-action="Edit">
+        <form asp-action="Edit" enctype="multipart/form-data">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="AstronomicalEventId" />
             <div class="form-group p-2">
@@ -22,14 +22,21 @@
                 <span asp-validation-for="Description" class="text-danger"></span>
             </div>
             <div class="form-group p-2">
+                <label asp-for="ImageFile" class="control-label"></label>
+                <input asp-for="ImageFile" class="form-control" type="file" />
+                <span asp-validation-for="ImageFile" class="text-danger"></span>
+            </div>
+            @if (!string.IsNullOrEmpty(Model.Filename))
+            {
+                <div class="form-group p-2">
+                    <label>Current Image:</label><br />
+                    <img src="\images\@Model.Filename" alt="Current Image" style="max-width: 100%; max-height: 200px;" />
+                </div>
+            }
+            <div class="form-group p-2">
                 <label asp-for="Location" class="control-label"></label>
                 <input asp-for="Location" class="form-control" />
                 <span asp-validation-for="Location" class="text-danger"></span>
-            </div>
-            <div class="form-group p-2">
-                <label asp-for="ImageUrl" class="control-label"></label>
-                <input asp-for="ImageUrl" class="form-control" />
-                <span asp-validation-for="ImageUrl" class="text-danger"></span>
             </div>
             <div class="form-group p-2">
                 <label asp-for="StartDateTime" class="control-label"></label>
