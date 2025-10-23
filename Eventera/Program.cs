@@ -1,12 +1,24 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Eventera.Data;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Eventera.Data;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<EventeraContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("EventeraContext") ?? throw new InvalidOperationException("Connection string 'EventeraContext' not found.")));
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+// Add authentication services
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+        options.SlidingExpiration = true; // Reset the expiration time if the user is active
+        options.LoginPath = "/Account/Login";
+        options.LogoutPath = "/Account/Logout";
+        options.AccessDeniedPath = "/Account/AccessDenied";
+    });
 
 var app = builder.Build();
 
@@ -23,6 +35,7 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(

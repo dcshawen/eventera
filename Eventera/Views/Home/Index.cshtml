@@ -1,29 +1,63 @@
 ﻿@model IEnumerable<Eventera.Models.AstronomicalEvent>
 
 @{
-    ViewData["Title"] = "Home";
+    ViewData["Title"] = "Astronomical Events";
 }
 
-<h1 class="display-4 text-center">Eventera</h1>
-<h2 class="display-6 text-center">Upcoming Astronomical Events</h2>
-
-@if (Model != null && Model.Any())
-{
-    <div id="astronomicalEventsCarousel" class="carousel slide" data-bs-ride="carousel">
-        <div class="carousel-inner">
-            
-        </div>
-        <button class="carousel-control-prev" type="button" data-bs-target="#astronomicalEventsCarousel" data-bs-slide="prev">
-            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-            <span class="visually-hidden">Previous</span>
-        </button>
-        <button class="carousel-control-next" type="button" data-bs-target="#astronomicalEventsCarousel" data-bs-slide="next">
-            <span class="carousel-control-next-icon" aria-hidden="true"></span>
-            <span class="visually-hidden">Next</span>
-        </button>
-    </div>
-}
-else
-{
-    <p>No upcoming astronomical events found.</p>
-}
+<p>
+    <a asp-controller="AstronomicalEvents" asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th></th>
+            <th>
+                @Html.DisplayNameFor(model => model.Title)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Category)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.StartDateTime)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @if (!String.IsNullOrEmpty(item.Filename))
+                    {
+                        <img src="/images/@item.Filename" alt="@item.Title" class="img-thumbnail" style="height:75px;" />
+                    } else
+                    {
+                        <em>No Image</em>
+                    }
+                </td>
+                <td>
+                    <a asp-controller="AstronomicalEvents" asp-action="Details" asp-route-id="@item.AstronomicalEventId" class="nav-link">
+                        @Html.DisplayFor(modelItem => item.Title)
+                    </a>
+                </td>
+                <td>
+                    @if (!String.IsNullOrEmpty(item.Category?.Title))
+                    {
+                        @Html.DisplayFor(modelItem => item.Category.Title)
+                    } else {
+                        <em>No Category</em>
+                    }
+                </td>
+                <td>
+                    @* @Html.DisplayFor(modelItem => item.StartDateTime) *@
+                    @item.StartDateTime.ToString("MMMM dd, yyyy")
+                </td>
+                <td>
+                    <a asp-controller="AstronomicalEvents" asp-action="Edit" asp-route-id="@item.AstronomicalEventId">Edit</a> |
+                    <a asp-controller="AstronomicalEvents" asp-action="Delete" asp-route-id="@item.AstronomicalEventId">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

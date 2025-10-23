@@ -7,9 +7,11 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Eventera.Data;
 using Eventera.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Eventera.Controllers
 {
+    [Authorize]
     public class CategoriesController : Controller
     {
         private readonly EventeraContext _context;

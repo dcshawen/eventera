@@ -24,12 +24,36 @@
                         <li class="nav-item">
                             <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
                         </li>
-                        <li class="nav-item">
+                        @* <li class="nav-item">
                             <a class="nav-link" asp-area="" asp-controller="AstronomicalEvents" asp-action="Index">Astronomical Events</a>
+                        </li> *@
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-controller="Categories" asp-action="Index">Categories</a>
                         </li>
                     </ul>
                     <span class="navbar-text">
                         <a href="#" id="toggleTheme" class="text-decoration-underline">Toggle Dark Mode</a>
+                        @if (User.Identity != null)
+                        {
+                            <ul class="navbar-nav">
+
+                                @if (User.Identity.IsAuthenticated)
+                                {
+                                    <li class="navbar-text pe-3">
+                                        Account: @User.Identity.Name
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" asp-area="" asp-controller="Account" asp-action="Logout">Logout</a>
+                                    </li>
+                                }
+                                else
+                                {
+                                    <li class="nav-item">
+                                        <a class="nav-link" asp-area="" asp-controller="Account" asp-action="Login">Login</a>
+                                    </li>
+                                }
+                            </ul>
+                        }
                     </span>
                 </div>
             </div>
