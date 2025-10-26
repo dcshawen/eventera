@@ -90,7 +90,7 @@ namespace Eventera.Controllers
                     
                     using (var stream = fileUpload.OpenReadStream())
                     {
-                        await blobClient.UploadAsync(stream, new BlobHttpHeaders { ContentType = fileUpload.ContentType });)
+                        await blobClient.UploadAsync(stream, new BlobHttpHeaders { ContentType = fileUpload.ContentType });
                     }
 
                     string blobUrl = blobClient.Uri.ToString();
