@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Eventera.Data;
 using Eventera.Models;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 
 namespace Eventera.Controllers
 {
@@ -14,9 +16,17 @@ namespace Eventera.Controllers
     {
         private readonly EventeraContext _context;
 
-        public AstronomicalEventsController(EventeraContext context)
+        private readonly BlobContainerClient _containerClient;
+        private readonly IConfiguration _configuration;
+
+        public AstronomicalEventsController(IConfiguration configuration, EventeraContext context)
         {
             _context = context;
+            _configuration = configuration;
+
+            var connectionString = _configuration["AzureStorage"];
+            var containerName = "nscc0190983storageblob";
+            _containerClient = new BlobContainerClient(connectionString, containerName);
         }
 
         // GET: AstronomicalEvents
@@ -65,14 +75,27 @@ namespace Eventera.Controllers
             {
                 if (astronomicalEvent.ImageFile != null)
                 {
-                    string filename = Guid.NewGuid().ToString() + Path.GetExtension(astronomicalEvent.ImageFile.FileName);
-                    astronomicalEvent.Filename = filename;
-                    string savedFilePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", filename);
+                    //string filename = Guid.NewGuid().ToString() + Path.GetExtension(astronomicalEvent.ImageFile.FileName);
+                    //astronomicalEvent.Filename = filename;
+                    //string savedFilePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", filename);
 
-                    using (FileStream fileStream = new FileStream(savedFilePath, FileMode.Create))
+                    //using (FileStream fileStream = new FileStream(savedFilePath, FileMode.Create))
+                    //{
+                    //    await astronomicalEvent.ImageFile.CopyToAsync(fileStream);
+                    //}
+
+                    IFormFile fileUpload = astronomicalEvent.ImageFile;
+                    string blobName = Guid.NewGuid().ToString() + "_" + fileUpload.FileName;
+                    var blobClient = _containerClient.GetBlobClient(blobName);
+                    
+                    using (var stream = fileUpload.OpenReadStream())
                     {
-                        await astronomicalEvent.ImageFile.CopyToAsync(fileStream);
+                        await blobClient.UploadAsync(stream, new BlobHttpHeaders { ContentType = fileUpload.ContentType });)
                     }
+
+                    string blobUrl = blobClient.Uri.ToString();
+
+                    astronomicalEvent.Filename = blobUrl;
                 }
                 _context.Add(astronomicalEvent);
                 await _context.SaveChangesAsync();
