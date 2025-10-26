@@ -25,7 +25,7 @@ namespace Eventera.Controllers
             _configuration = configuration;
 
             var connectionString = _configuration["AzureStorage"];
-            var containerName = "nscc0190983storageblob";
+            var containerName = "nscc0190983blobcontainer";
             _containerClient = new BlobContainerClient(connectionString, containerName);
         }
 
