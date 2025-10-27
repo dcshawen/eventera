@@ -9,9 +9,11 @@ using Eventera.Data;
 using Eventera.Models;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Eventera.Controllers
 {
+    [Authorize]
     public class AstronomicalEventsController : Controller
     {
         private readonly EventeraContext _context;
@@ -24,7 +26,7 @@ namespace Eventera.Controllers
             _context = context;
             _configuration = configuration;
 
-            var connectionString = _configuration["AzureStorage"];
+            var connectionString = _configuration.GetConnectionString("AzureStorage");
             var containerName = "nscc0190983blobcontainer";
             _containerClient = new BlobContainerClient(connectionString, containerName);
         }
