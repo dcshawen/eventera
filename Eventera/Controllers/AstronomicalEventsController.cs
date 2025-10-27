@@ -26,7 +26,7 @@ namespace Eventera.Controllers
             _context = context;
             _configuration = configuration;
 
-            var connectionString = _configuration.GetConnectionString("AzureStorage");
+            var connectionString = _configuration["AzureStorage"];
             var containerName = "nscc0190983blobcontainer";
             _containerClient = new BlobContainerClient(connectionString, containerName);
         }
@@ -101,7 +101,7 @@ namespace Eventera.Controllers
                 }
                 _context.Add(astronomicalEvent);
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Index), "Home");
             }
             ViewData["CategoryId"] = new SelectList(_context.Set<Category>(), "CategoryId", "CategoryId", astronomicalEvent.CategoryId);
             return View(astronomicalEvent);
@@ -219,11 +219,36 @@ namespace Eventera.Controllers
             var astronomicalEvent = await _context.AstronomicalEvent.FindAsync(id);
             if (astronomicalEvent != null)
             {
+                // If a blob URL was stored in Filename, attempt to delete the blob from storage
+                if (!string.IsNullOrEmpty(astronomicalEvent.Filename))
+                {
+                    try
+                    {
+                        var uri = new Uri(astronomicalEvent.Filename);
+                        // Blob URL path typically looks like: /containerName/blobName
+                        var segments = uri.Segments;
+                        if (segments.Length >= 1)
+                        {
+                            // Last segment is the blob name (handles simple blob names)
+                            var blobName = segments[^1].Trim('/');
+                            if (!string.IsNullOrEmpty(blobName))
+                            {
+                                var blobClient = _containerClient.GetBlobClient(blobName);
+                                await blobClient.DeleteIfExistsAsync();
+                            }
+                        }
+                    }
+                    catch
+                    {
+                        // swallow exceptions to avoid failing delete operation; consider logging in real app
+                    }
+                }
+
                 _context.AstronomicalEvent.Remove(astronomicalEvent);
             }
 
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index), "Home");
         }
 
         private bool AstronomicalEventExists(int id)
