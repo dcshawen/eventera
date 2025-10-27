@@ -7,6 +7,13 @@ namespace Eventera.Controllers
 {
     public class AccountController : Controller
     {
+        private readonly IConfiguration _configuration;
+
+        public AccountController(IConfiguration configuration)
+        {
+            _configuration = configuration;
+        }
+
         // GET: /Account/Login
         public IActionResult Login(string returnUrl)
         {
@@ -22,7 +29,7 @@ namespace Eventera.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(string username, string password, string returnUrl)
         {
-            if (username == "admin" && password == "admin123")
+            if (username == _configuration["eventera_user"] && password == _configuration["eventera_password"])
             {
                 var claims = new List<Claim>
                 {
