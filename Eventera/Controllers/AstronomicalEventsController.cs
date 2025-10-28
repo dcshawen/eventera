@@ -98,10 +98,15 @@ namespace Eventera.Controllers
                     string blobUrl = blobClient.Uri.ToString();
 
                     astronomicalEvent.Filename = blobUrl;
+                } else
+                {
+                    var blobClient = _containerClient.GetBlobClient("eclipse.jpg");
+                    string blobUrl = blobClient.Uri.ToString();
+                    astronomicalEvent.Filename = blobUrl;
                 }
-                _context.Add(astronomicalEvent);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index), "Home");
+                    _context.Add(astronomicalEvent);
+                    await _context.SaveChangesAsync();
+                    return RedirectToAction(nameof(Index), "Home");
             }
             ViewData["CategoryId"] = new SelectList(_context.Set<Category>(), "CategoryId", "CategoryId", astronomicalEvent.CategoryId);
             return View(astronomicalEvent);
@@ -186,7 +191,7 @@ namespace Eventera.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Index), "Home");
             }
             ViewData["CategoryId"] = new SelectList(_context.Set<Category>(), "CategoryId", "Title", astronomicalEvent.CategoryId);
             return View(astronomicalEvent);
