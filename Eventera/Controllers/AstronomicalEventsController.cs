@@ -10,6 +10,7 @@ using Eventera.Models;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Eventera.Controllers
 {
@@ -27,6 +28,10 @@ namespace Eventera.Controllers
             _configuration = configuration;
 
             var connectionString = _configuration["AzureStorage"];
+            if (connectionString.IsNullOrEmpty())
+            {
+                connectionString = _configuration.GetConnectionString("AzureStorage");
+            }
             var containerName = "nscc0190983blobcontainer";
             _containerClient = new BlobContainerClient(connectionString, containerName);
         }
