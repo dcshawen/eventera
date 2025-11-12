@@ -27,10 +27,10 @@ namespace Eventera.Controllers
             _context = context;
             _configuration = configuration;
 
-            var connectionString = _configuration["AzureStorage"];
+            var connectionString = _configuration["AzureStorage"]; // This works for local development but will be NULL when deployed
             if (connectionString.IsNullOrEmpty())
             {
-                connectionString = _configuration.GetConnectionString("AzureStorage");
+                connectionString = _configuration.GetConnectionString("AzureStorage"); // Connection string in Azure must be fetched with .GetConnectionString(), _configuration[""] returns environment variables only
             }
             var containerName = "nscc0190983blobcontainer";
             _containerClient = new BlobContainerClient(connectionString, containerName);
@@ -105,7 +105,7 @@ namespace Eventera.Controllers
                     astronomicalEvent.Filename = blobUrl;
                 } else
                 {
-                    var blobClient = _containerClient.GetBlobClient("eclipse.jpg");
+                    var blobClient = _containerClient.GetBlobClient("eclipse.jpg"); // Placeholder image
                     string blobUrl = blobClient.Uri.ToString();
                     astronomicalEvent.Filename = blobUrl;
                 }
