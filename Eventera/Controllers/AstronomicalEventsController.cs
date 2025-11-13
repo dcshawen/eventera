@@ -139,7 +139,7 @@ namespace Eventera.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("AstronomicalEventId,Title,Description,Location,Filename,StartDateTime,CreatedDateTime,CategoryId,ImageFile")] AstronomicalEvent astronomicalEvent)
+        public async Task<IActionResult> Edit(int id, [Bind("AstronomicalEventId,Title,Description,Location,StartDateTime,CreatedDateTime,CategoryId,ImageFile")] AstronomicalEvent astronomicalEvent)
         {
             if (id != astronomicalEvent.AstronomicalEventId)
             {
@@ -148,40 +148,34 @@ namespace Eventera.Controllers
 
             if (ModelState.IsValid)
             {
+                // Ensure the record still exists and preserve fields we shouldn't overwrite
+                var existingEvent = await _context.AstronomicalEvent.AsNoTracking().FirstOrDefaultAsync(e => e.AstronomicalEventId == id);
+                if (existingEvent == null)
+                {
+                    return NotFound();
+                }
+
+                string newFilename = existingEvent.Filename;
+                // Handle new file upload if provided
+                if (astronomicalEvent.ImageFile != null && astronomicalEvent.ImageFile.Length > 0)
+                {
+                    string blobName = Guid.NewGuid().ToString() + "_" + astronomicalEvent.ImageFile.FileName;
+                    var blobClient = _containerClient.GetBlobClient(blobName);
+
+                    using (var stream = astronomicalEvent.ImageFile.OpenReadStream())
+                    {
+                        await blobClient.UploadAsync(stream, new BlobHttpHeaders { ContentType = astronomicalEvent.ImageFile.ContentType });
+                    }
+
+                    newFilename = blobClient.Uri.ToString();
+                }
+
+                // Preserve created date and set resolved filename
+                astronomicalEvent.CreatedDateTime = existingEvent.CreatedDateTime;
+                astronomicalEvent.Filename = newFilename;
+
                 try
                 {
-                    var existingEvent = await _context.AstronomicalEvent.AsNoTracking().FirstOrDefaultAsync(e => e.AstronomicalEventId == id);
-                    if (existingEvent == null)
-                    {
-                        return NotFound();
-                    }
-
-                    string oldFilename = existingEvent.Filename;
-                    string newFilename = oldFilename;
-
-                    if (astronomicalEvent.ImageFile != null && astronomicalEvent.ImageFile.Length > 0)
-                    {
-                        string filename = Guid.NewGuid().ToString() + Path.GetExtension(astronomicalEvent.ImageFile.FileName);
-                        string savedFilePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", filename);
-
-                        using (FileStream fileStream = new FileStream(savedFilePath, FileMode.Create))
-                        {
-                            await astronomicalEvent.ImageFile.CopyToAsync(fileStream);
-                        }
-
-                        newFilename = filename;
-
-                        if (!string.IsNullOrEmpty(oldFilename))
-                        {
-                            string oldImagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", oldFilename);
-                            if (System.IO.File.Exists(oldImagePath))
-                            {
-                                System.IO.File.Delete(oldImagePath);
-                            }
-                        }
-                    }
-
-                    astronomicalEvent.Filename = newFilename;
                     _context.Entry(astronomicalEvent).State = EntityState.Modified;
                     await _context.SaveChangesAsync();
                 }
@@ -196,8 +190,10 @@ namespace Eventera.Controllers
                         throw;
                     }
                 }
+
                 return RedirectToAction(nameof(Index), "Home");
             }
+
             ViewData["CategoryId"] = new SelectList(_context.Set<Category>(), "CategoryId", "Title", astronomicalEvent.CategoryId);
             return View(astronomicalEvent);
         }
