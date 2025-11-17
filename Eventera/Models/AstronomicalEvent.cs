@@ -19,6 +19,7 @@ namespace Eventera.Models
         [Display(Name = "Category")]
         public int CategoryId { get; set; }
         public Category? Category { get; set; }
+        public List<Ticket>? Tickets { get; set; }
 
         [NotMapped]
         [Display(Name = "Image File")]

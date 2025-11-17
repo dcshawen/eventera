@@ -53,6 +53,7 @@ namespace Eventera.Controllers
 
             var astronomicalEvent = await _context.AstronomicalEvent
                 .Include(a => a.Category)
+                .Include(a => a.Tickets)
                 .FirstOrDefaultAsync(m => m.AstronomicalEventId == id);
             if (astronomicalEvent == null)
             {

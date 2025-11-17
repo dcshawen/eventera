@@ -55,3 +55,43 @@
     <a asp-action="Edit" asp-route-id="@Model?.AstronomicalEventId">Edit</a> |
     <a asp-controller="Home" asp-action="Index">Back to List</a>
 </div>
+
+<h2>Tickets Purchased</h2>
+@if (Model.Tickets != null && Model.Tickets.Any())
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>
+                    @Html.DisplayNameFor(model => model.Tickets.First().PurchaseDateTime)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Tickets.First().PurchaserName)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Tickets.First().AstronomicalEvent)
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var item in Model.Tickets)
+        {
+            <tr>
+                <td>
+                    @item.PurchaseDateTime.ToString("MMMM dd, yyyy h:mm tt")
+                </td>
+                <td>
+                    @item.PurchaserName
+                </td>
+                <td>
+                        @item.AstronomicalEvent?.Title
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No tickets have been purchased for this event.</p>
+}

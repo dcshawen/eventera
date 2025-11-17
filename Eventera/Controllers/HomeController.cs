@@ -42,6 +42,7 @@ namespace Eventera.Controllers
 
             var photo = await _context.AstronomicalEvent
                 .Include(p => p.Category)
+                .Include(p => p.Tickets)
                 .FirstOrDefaultAsync(m => m.AstronomicalEventId == id);
 
             if (photo == null)
