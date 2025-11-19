@@ -419,3 +419,4 @@ FodyWeavers.xsd
 
 Eventera/Properties/launchSettings.json
 *appsettings.json
+*wwwroot/

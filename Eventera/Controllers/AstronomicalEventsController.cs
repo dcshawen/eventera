@@ -7,10 +7,8 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Eventera.Data;
 using Eventera.Models;
-using Azure.Storage.Blobs;
-using Azure.Storage.Blobs.Models;
+using System.IO;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.IdentityModel.Tokens;
 
 namespace Eventera.Controllers
 {
@@ -19,21 +17,9 @@ namespace Eventera.Controllers
     {
         private readonly EventeraContext _context;
 
-        private readonly BlobContainerClient _containerClient;
-        private readonly IConfiguration _configuration;
-
-        public AstronomicalEventsController(IConfiguration configuration, EventeraContext context)
+        public AstronomicalEventsController(EventeraContext context)
         {
             _context = context;
-            _configuration = configuration;
-
-            var connectionString = _configuration["AzureStorage"]; // This works for local development but will be NULL when deployed
-            if (connectionString.IsNullOrEmpty())
-            {
-                connectionString = _configuration.GetConnectionString("AzureStorage"); // Connection string in Azure must be fetched with .GetConnectionString(), _configuration[""] returns environment variables only
-            }
-            var containerName = "nscc0190983blobcontainer";
-            _containerClient = new BlobContainerClient(connectionString, containerName);
         }
 
         // GET: AstronomicalEvents
@@ -83,36 +69,29 @@ namespace Eventera.Controllers
             {
                 if (astronomicalEvent.ImageFile != null)
                 {
-                    //string filename = Guid.NewGuid().ToString() + Path.GetExtension(astronomicalEvent.ImageFile.FileName);
-                    //astronomicalEvent.Filename = filename;
-                    //string savedFilePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", filename);
+                    var fileUpload = astronomicalEvent.ImageFile;
+                    string filename = Guid.NewGuid().ToString() + Path.GetExtension(fileUpload.FileName);
+                    string savedFilePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", filename);
 
-                    //using (FileStream fileStream = new FileStream(savedFilePath, FileMode.Create))
-                    //{
-                    //    await astronomicalEvent.ImageFile.CopyToAsync(fileStream);
-                    //}
+                    // Ensure directory exists
+                    Directory.CreateDirectory(Path.GetDirectoryName(savedFilePath) ?? string.Empty);
 
-                    IFormFile fileUpload = astronomicalEvent.ImageFile;
-                    string blobName = Guid.NewGuid().ToString() + "_" + fileUpload.FileName;
-                    var blobClient = _containerClient.GetBlobClient(blobName);
-                    
-                    using (var stream = fileUpload.OpenReadStream())
+                    using (FileStream fileStream = new FileStream(savedFilePath, FileMode.Create))
                     {
-                        await blobClient.UploadAsync(stream, new BlobHttpHeaders { ContentType = fileUpload.ContentType });
+                        await fileUpload.CopyToAsync(fileStream);
                     }
 
-                    string blobUrl = blobClient.Uri.ToString();
-
-                    astronomicalEvent.Filename = blobUrl;
-                } else
-                {
-                    var blobClient = _containerClient.GetBlobClient("eclipse.jpg"); // Placeholder image
-                    string blobUrl = blobClient.Uri.ToString();
-                    astronomicalEvent.Filename = blobUrl;
+                    astronomicalEvent.Filename = "/images/" + filename;
                 }
-                    _context.Add(astronomicalEvent);
-                    await _context.SaveChangesAsync();
-                    return RedirectToAction(nameof(Index), "Home");
+                else
+                {
+                    // Placeholder image
+                    astronomicalEvent.Filename = "/images/eclipse.jpg";
+                }
+
+                _context.Add(astronomicalEvent);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index), "Home");
             }
             ViewData["CategoryId"] = new SelectList(_context.Set<Category>(), "CategoryId", "CategoryId", astronomicalEvent.CategoryId);
             return View(astronomicalEvent);
@@ -157,18 +136,39 @@ namespace Eventera.Controllers
                 }
 
                 string newFilename = existingEvent.Filename;
+
                 // Handle new file upload if provided
                 if (astronomicalEvent.ImageFile != null && astronomicalEvent.ImageFile.Length > 0)
                 {
-                    string blobName = Guid.NewGuid().ToString() + "_" + astronomicalEvent.ImageFile.FileName;
-                    var blobClient = _containerClient.GetBlobClient(blobName);
+                    string filename = Guid.NewGuid().ToString() + Path.GetExtension(astronomicalEvent.ImageFile.FileName);
+                    string savedFilePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", filename);
 
-                    using (var stream = astronomicalEvent.ImageFile.OpenReadStream())
+                    Directory.CreateDirectory(Path.GetDirectoryName(savedFilePath) ?? string.Empty);
+
+                    using (FileStream fileStream = new FileStream(savedFilePath, FileMode.Create))
                     {
-                        await blobClient.UploadAsync(stream, new BlobHttpHeaders { ContentType = astronomicalEvent.ImageFile.ContentType });
+                        await astronomicalEvent.ImageFile.CopyToAsync(fileStream);
                     }
 
-                    newFilename = blobClient.Uri.ToString();
+                    newFilename = "/images/" + filename;
+
+                    // Optionally delete the old file if it exists and is not the placeholder
+                    try
+                    {
+                        if (!string.IsNullOrEmpty(existingEvent.Filename) && !existingEvent.Filename.EndsWith("eclipse.jpg", StringComparison.OrdinalIgnoreCase))
+                        {
+                            var oldFileName = Path.GetFileName(existingEvent.Filename);
+                            var oldFilePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", oldFileName);
+                            if (System.IO.File.Exists(oldFilePath))
+                            {
+                                System.IO.File.Delete(oldFilePath);
+                            }
+                        }
+                    }
+                    catch
+                    {
+                        // swallow any errors deleting old file
+                    }
                 }
 
                 // Preserve created date and set resolved filename
@@ -226,22 +226,18 @@ namespace Eventera.Controllers
             var astronomicalEvent = await _context.AstronomicalEvent.FindAsync(id);
             if (astronomicalEvent != null)
             {
-                // If a blob URL was stored in Filename, attempt to delete the blob from storage
+                // If a local file was stored in Filename, attempt to delete the file from wwwroot/images
                 if (!string.IsNullOrEmpty(astronomicalEvent.Filename))
                 {
                     try
                     {
-                        var uri = new Uri(astronomicalEvent.Filename);
-                        // Blob URL path typically looks like: /containerName/blobName
-                        var segments = uri.Segments;
-                        if (segments.Length >= 1)
+                        if (!astronomicalEvent.Filename.EndsWith("eclipse.jpg", StringComparison.OrdinalIgnoreCase))
                         {
-                            // Last segment is the blob name (handles simple blob names)
-                            var blobName = segments[^1].Trim('/');
-                            if (!string.IsNullOrEmpty(blobName))
+                            var fileName = Path.GetFileName(astronomicalEvent.Filename);
+                            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", fileName);
+                            if (System.IO.File.Exists(filePath))
                             {
-                                var blobClient = _containerClient.GetBlobClient(blobName);
-                                await blobClient.DeleteIfExistsAsync();
+                                System.IO.File.Delete(filePath);
                             }
                         }
                     }
